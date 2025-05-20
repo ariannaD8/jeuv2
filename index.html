@@ -1,0 +1,454 @@
+```html
+    body {
+        font-family: 'Poppins', sans-serif;
+        background: linear-gradient(135deg, #0f2557, #1e40af);
+        min-height: 100vh;
+    }
+    
+    .clue {
+        transition: all 0.3s ease;
+    }
+    
+    .question-container {
+        transition: transform 0.5s ease, opacity 0.5s ease;
+    }
+    
+    .hidden-question {
+        transform: translateX(-50px);
+        opacity: 0;
+        pointer-events: none;
+        position: absolute;
+    }
+    
+    .visible-question {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    
+    .option-btn {
+        transition: all 0.2s ease;
+    }
+    
+    .option-btn:hover {
+        transform: translateY(-2px);
+    }
+    
+    .confetti {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        background-color: #f39c12;
+        border-radius: 50%;
+        animation: fall 3s ease-in infinite;
+    }
+    
+    @keyframes fall {
+        0% {
+            transform: translateY(-100px) rotate(0deg);
+            opacity: 1;
+        }
+        100% {
+            transform: translateY(100vh) rotate(360deg);
+            opacity: 0;
+        }
+    }
+
+    .coffee-cup {
+        width: 60px;
+        height: 60px;
+    }
+
+    @media (max-width: 640px) {
+        .coffee-cup {
+            width: 40px;
+            height: 40px;
+        }
+    }
+</style>
+        <div class="p-8 text-center">
+            <h2 class="text-2xl font-bold mb-4">Bienvenue à la Chasse au Trésor D8!</h2>
+            
+            <div class="bg-blue-50 p-6 rounded-lg mb-6 text-left">
+                <p class="mb-3">Voici les règles du jeu :</p>
+                <ul class="list-disc pl-5 space-y-2">
+                    <li>Répondez correctement à toutes les questions pour gagner</li>
+                    <li>Chaque bonne réponse vous donne un indice</li>
+                    <li>Collectez tous les indices pour obtenir le code final</li>
+                    <li><span class="font-bold text-red-600">Attention :</span> Une seule erreur et le jeu est terminé!</li>
+                    <li>Les réponses peuvent être trouvées sur nos distributeurs</li>
+                </ul>
+            </div>
+            
+            <button id="start-button" class="bg-blue-800 hover:bg-blue-900 text-white font-bold py-3 px-8 rounded-lg text-lg transition-all transform hover:scale-105">
+                Commencer le jeu
+            </button>
+        </div>
+    </div>
+    
+    <!-- Game Screen (initially hidden) -->
+    <div id="game-screen" class="hidden">
+        <!-- Header with coffee cups -->
+        <div class="bg-gradient-to-r from-blue-900 to-blue-800 p-6 text-white text-center flex items-center justify-center">
+            <svg class="coffee-cup mr-3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2 8H18V17C18 19.2091 16.2091 21 14 21H6C3.79086 21 2 19.2091 2 17V8Z" stroke="white" stroke-width="2"/>
+                <path d="M18 8H22V11C22 12.6569 20.6569 14 19 14H18V8Z" stroke="white" stroke-width="2"/>
+                <path d="M6 1V4" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                <path d="M10 1V4" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                <path d="M14 1V4" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <h1 class="text-3xl font-bold">Chasse au Trésor D8</h1>
+            <svg class="coffee-cup ml-3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2 8H18V17C18 19.2091 16.2091 21 14 21H6C3.79086 21 2 19.2091 2 17V8Z" stroke="white" stroke-width="2"/>
+                <path d="M18 8H22V11C22 12.6569 20.6569 14 19 14H18V8Z" stroke="white" stroke-width="2"/>
+                <path d="M6 1V4" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                <path d="M10 1V4" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                <path d="M14 1V4" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </div>
+        
+        <!-- Progress Bar -->
+        <div class="w-full bg-gray-200 h-4 rounded-full overflow-hidden">
+            <div id="progress-bar" class="bg-blue-700 h-full transition-all duration-500" style="width: 0%"></div>
+        </div>
+        
+        <!-- Game Container -->
+        <div id="game-container" class="p-6">
+            <!-- Questions will be displayed here -->
+        </div>
+        
+        <!-- Clues Container -->
+        <div class="bg-blue-50 p-4 border-t border-blue-100">
+            <h2 class="text-xl font-semibold text-blue-900 mb-3">Vos indices:</h2>
+            <div id="clues-container" class="flex flex-wrap gap-3">
+                <div id="clue1" class="clue bg-gray-200 text-gray-400 px-4 py-2 rounded-lg font-bold">?</div>
+                <div id="clue2" class="clue bg-gray-200 text-gray-400 px-4 py-2 rounded-lg font-bold">?</div>
+                <div id="clue3" class="clue bg-gray-200 text-gray-400 px-4 py-2 rounded-lg font-bold">?</div>
+                <div id="clue4" class="clue bg-gray-200 text-gray-400 px-4 py-2 rounded-lg font-bold">?</div>
+                <div id="clue5" class="clue bg-gray-200 text-gray-400 px-4 py-2 rounded-lg font-bold">?</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Final Modal -->
+<div id="final-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-xl p-8 max-w-md w-full text-center relative">
+        <div id="confetti-container"></div>
+        <div class="text-3xl font-bold text-blue-800 mb-4">Félicitations!</div>
+        <p class="text-lg mb-4">Vous avez complété la chasse au trésor!</p>
+        <div class="text-2xl font-bold bg-blue-100 border-2 border-blue-400 rounded-lg p-4 mb-6">
+            Votre code est: <span id="final-code" class="text-blue-800"></span>
+        </div>
+        <p class="mb-6">Entrez ce code dans l'application Matipay pour découvrir si vous êtes parmi les 15 premiers gagnants du questionnaire!</p>
+    </div>
+</div>
+
+<!-- Game Over Modal -->
+<div id="game-over-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-xl p-8 max-w-md w-full text-center">
+        <div class="text-3xl font-bold text-red-600 mb-4">Réponse Incorrecte!</div>
+        <div class="mb-6">
+            <svg class="w-24 h-24 mx-auto text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+        </div>
+        <p class="text-lg mb-6">Ce sera pour la prochaine fois!</p>
+    </div>
+</div>
+
+<script>
+    // Game data
+    const questions = [
+        {
+            question: "En quelle année a été fondée l'entreprise D8?",
+            options: [
+                "1965",
+                "1972",
+                "1980",
+                "1995"
+            ],
+            correctAnswer: 1,
+            clue: "C"
+        },
+        {
+            question: "Qu'est-ce qui est écrit sur le gobelet distribué par nos distributeurs de boissons chaudes?",
+            options: [
+                "Alpha",
+                "Beta",
+                "Delta",
+                "Omega"
+            ],
+            correctAnswer: 0,
+            clue: "A"
+        },
+        {
+            question: "En quel matériau est fait notre gobelet Alpha 100% recyclable?",
+            options: [
+                "Plastique biodégradable",
+                "Silice naturelle",
+                "Papier recyclé",
+                "Bambou"
+            ],
+            correctAnswer: 1,
+            clue: "F",
+            hint: "* Jetez un œil à notre blog sur www.d8.fr 😉"
+        },
+        {
+            question: "Quelle est l'origine des fondateurs de l'entreprise D8?",
+            options: [
+                "Française",
+                "Italienne",
+                "Espagnole",
+                "Allemande"
+            ],
+            correctAnswer: 1,
+            clue: "E"
+        },
+        {
+            preQuestion: "* Sur cette question nous ne pouvons pas vous aider, c'est vraiment pour les professionnels du café!",
+            question: "Quelle est la température idéale pour préparer un espresso?",
+            options: [
+                "75-85°C",
+                "85-90°C",
+                "90-96°C",
+                "97-100°C"
+            ],
+            correctAnswer: 2,
+            clue: "D8"
+        }
+    ];
+
+    // Game state
+    let currentQuestionIndex = 0;
+    let discoveredClues = [];
+    const finalCode = "CAFED8";
+    let gameActive = true;
+
+    // Initialize game
+    document.getElementById('start-button').addEventListener('click', function() {
+        document.getElementById('welcome-screen').classList.add('hidden');
+        document.getElementById('game-screen').classList.remove('hidden');
+        initGame();
+    });
+
+    function initGame() {
+        const gameContainer = document.getElementById('game-container');
+        gameContainer.innerHTML = '';
+        
+        // Create all question containers
+        questions.forEach((q, index) => {
+            const questionDiv = createQuestionElement(q, index);
+            gameContainer.appendChild(questionDiv);
+        });
+        
+        // Show first question
+        showQuestion(0);
+        
+        // Reset clues
+        resetClues();
+        
+        // Reset progress bar
+        updateProgressBar();
+        
+        // Reset game state
+        gameActive = true;
+    }
+
+    // Create question element
+    function createQuestionElement(questionData, index) {
+        const questionDiv = document.createElement('div');
+        questionDiv.id = `question-${index}`;
+        questionDiv.className = 'question-container hidden-question';
+        
+        let questionHTML = `
+            <h2 class="text-2xl font-bold mb-6">Question ${index + 1}</h2>
+        `;
+        
+        // Add pre-question text if exists
+        if (questionData.preQuestion) {
+            questionHTML += `
+                <div class="bg-yellow-50 p-3 rounded-lg mb-4 text-sm italic">
+                    ${questionData.preQuestion}
+                </div>
+            `;
+        }
+        
+        questionHTML += `
+            <div class="bg-blue-50 p-4 rounded-lg mb-6">
+                <p class="text-lg">${questionData.question}</p>
+            </div>
+            <div class="space-y-3">
+                ${questionData.options.map((option, optIndex) => `
+                    <button class="option-btn w-full text-left p-4 bg-white border border-gray-300 rounded-lg hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-700" 
+                            data-index="${optIndex}">
+                        ${option}
+                    </button>
+                `).join('')}
+            </div>
+        `;
+        
+        // Add hint if exists
+        if (questionData.hint) {
+            questionHTML += `
+                <div class="mt-4 text-sm text-gray-600 italic">
+                    ${questionData.hint}
+                </div>
+            `;
+        }
+        
+        questionDiv.innerHTML = questionHTML;
+        
+        // Add event listeners to options
+        setTimeout(() => {
+            const optionButtons = questionDiv.querySelectorAll('.option-btn');
+            optionButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    if (!gameActive) return; // Prevent clicking if game is over
+                    const selectedIndex = parseInt(button.getAttribute('data-index'));
+                    handleAnswer(selectedIndex, index);
+                });
+            });
+        }, 0);
+        
+        return questionDiv;
+    }
+
+    // Show a specific question
+    function showQuestion(index) {
+        // Hide all questions
+        document.querySelectorAll('.question-container').forEach(q => {
+            q.classList.add('hidden-question');
+            q.classList.remove('visible-question');
+        });
+        
+        // Show the current question
+        const currentQuestion = document.getElementById(`question-${index}`);
+        if (currentQuestion) {
+            currentQuestion.classList.remove('hidden-question');
+            setTimeout(() => {
+                currentQuestion.classList.add('visible-question');
+            }, 50);
+        }
+        
+        currentQuestionIndex = index;
+        updateProgressBar();
+    }
+
+    // Handle answer selection
+    function handleAnswer(selectedIndex, questionIndex) {
+        const question = questions[questionIndex];
+        const optionButtons = document.querySelectorAll(`#question-${questionIndex} .option-btn`);
+        
+        // Disable all buttons to prevent multiple selections
+        optionButtons.forEach(btn => {
+            btn.disabled = true;
+            btn.classList.add('cursor-not-allowed');
+        });
+        
+        if (selectedIndex === question.correctAnswer) {
+            // Correct answer
+            revealClue(questionIndex, question.clue);
+            
+            // Highlight correct answer
+            optionButtons[selectedIndex].classList.remove('bg-white', 'border-gray-300');
+            optionButtons[selectedIndex].classList.add('bg-green-100', 'border-green-500', 'text-green-700');
+            
+            // Move to next question or show final screen
+            if (questionIndex < questions.length - 1) {
+                setTimeout(() => {
+                    showQuestion(questionIndex + 1);
+                }, 1000);
+            } else {
+                // Game completed
+                setTimeout(() => {
+                    showFinalScreen();
+                }, 1000);
+            }
+        } else {
+            // Wrong answer - game over
+            gameActive = false;
+            
+            // Highlight wrong answer
+            optionButtons[selectedIndex].classList.remove('bg-white', 'border-gray-300');
+            optionButtons[selectedIndex].classList.add('bg-red-100', 'border-red-500', 'text-red-700');
+            
+            // Show correct answer
+            optionButtons[question.correctAnswer].classList.remove('bg-white', 'border-gray-300');
+            optionButtons[question.correctAnswer].classList.add('bg-green-100', 'border-green-500', 'text-green-700');
+            
+            // Show game over modal after a short delay
+            setTimeout(() => {
+                showGameOverScreen();
+            }, 1500);
+        }
+    }
+
+    // Reveal a clue
+    function revealClue(questionIndex, clue) {
+        const clueElement = document.getElementById(`clue${questionIndex + 1}`);
+        clueElement.textContent = clue;
+        clueElement.classList.remove('bg-gray-200', 'text-gray-400');
+        clueElement.classList.add('bg-blue-800', 'text-white');
+        
+        // Animation
+        clueElement.animate(
+            [
+                { transform: 'scale(1)' },
+                { transform: 'scale(1.2)' },
+                { transform: 'scale(1)' }
+            ],
+            { duration: 500, easing: 'ease-out' }
+        );
+        
+        discoveredClues[questionIndex] = clue;
+    }
+
+    // Reset clues
+    function resetClues() {
+        discoveredClues = [];
+        for (let i = 1; i <= 5; i++) {
+            const clueElement = document.getElementById(`clue${i}`);
+            clueElement.textContent = '?';
+            clueElement.classList.remove('bg-blue-800', 'text-white');
+            clueElement.classList.add('bg-gray-200', 'text-gray-400');
+        }
+    }
+
+    // Update progress bar
+    function updateProgressBar() {
+        const progressBar = document.getElementById('progress-bar');
+        const progress = ((currentQuestionIndex) / questions.length) * 100;
+        progressBar.style.width = `${progress}%`;
+    }
+
+    // Show final screen
+    function showFinalScreen() {
+        document.getElementById('final-code').textContent = finalCode;
+        document.getElementById('final-modal').classList.remove('hidden');
+        createConfetti();
+    }
+
+    // Show game over screen
+    function showGameOverScreen() {
+        document.getElementById('game-over-modal').classList.remove('hidden');
+    }
+
+    // Create confetti effect
+    function createConfetti() {
+        const confettiContainer = document.getElementById('confetti-container');
+        confettiContainer.innerHTML = '';
+        
+        const colors = ['#1e3a8a', '#1e40af', '#1d4ed8', '#2563eb', '#3b82f6'];
+        
+        for (let i = 0; i < 50; i++) {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.style.left = `${Math.random() * 100}%`;
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.width = `${Math.random() * 10 + 5}px`;
+            confetti.style.height = `${Math.random() * 10 + 5}px`;
+            confetti.style.animationDelay = `${Math.random() * 3}s`;
+            confettiContainer.appendChild(confetti);
+        }
+    }
+</script>
